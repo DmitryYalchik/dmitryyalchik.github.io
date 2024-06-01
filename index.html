@@ -43,6 +43,11 @@
 </header>
 
 <body>
+
+  <div class="toast-container" id="toastContainer">
+      <!-- Toasts will be dynamically added here -->
+  </div>
+  <button type="button" class="btn btn-primary" onclick="addToast('This is a dynamic toast!')">Show Toast</button>
     <div class="form-wrapper">
         <!-- <div style="display: flex; align-items: center; margin: 0 auto; border-radius: 3px; background-color: #ccc; width: 30%; height: 100%; "></div> -->
         <form id="mainForm">
@@ -61,7 +66,7 @@
             </div>
 
             <div class="mb-3" style="width: 100%;">
-                <label for="textTextarea" class="form-label">Сообщение</label>
+                <label class="form-label">Сообщение</label>
                 <textarea id="textTextArea" class="form-control" id="textTextarea" rows="3" required minlength="10"></textarea>
             </div>
 
