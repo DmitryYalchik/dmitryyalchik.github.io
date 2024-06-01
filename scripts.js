@@ -56,6 +56,9 @@ document.getElementById("submitBtn").addEventListener("click", function(){
     console.log("https://api.telegram.org/bot"+ document.getElementById("botTokenInput").value + "/sendMessage?chat_id=" + document.getElementById("tgidInput").value + "&text=" + document.getElementById("textTextArea").value);
     xhttp.send();
     addToast("Сообщение успешно отправлено пользователю " + document.getElementById("tgidInput").value);
+
+    document.getElementById("tgidInput").value = "";
+    document.getElementById("tgidInput").value = "";
     });
 
 // Проверяем валидность формы при загрузке страницы
