@@ -1,79 +1,219 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dmitry Yal'chik</title>
-    <link rel="icon" href="Assets/favicon.ico" type="image/x-icon">
-    <!-- Подключение CSS файла bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
-    <!-- Далее может идти подключение любого другого CSS файла сайта -->
-    <link href="styles.css" rel="stylesheet">
+    <title>Плавное фиолетовое сердце</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: #000; 
+            cursor: pointer;
+        }
+        canvas { 
+            display: block; 
+        }
+    </style>
 </head>
-
-<header>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="#">Dmitry Yal'chik</a>
-          <!-- <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Переключатель навигации">
-            <span class="navbar-toggler-icon"></span>
-          </button> -->
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="#">Главная страница</a>
-              </li>
-
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Связь
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                  <li><a class="dropdown-item" href="https://vk.com/yalchik.official" target="_blank">VK</a></li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="https://t.me/dmitry_yalchik" target="_blank">Telegram</a></li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="https://discordapp.com/users/361151843868475402" target="_blank">Discord</a></li>
-                </ul>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
-</header>
-
 <body>
+    <canvas id="canvas"></canvas>
+    <script>
+        // Настройки
+        const PARTICLE_COUNT = 2500;
+        const PARTICLE_SIZE = 1.8;
+        const HEART_SCALE = 25;
+        const EXPLOSION_POWER = 8;
+        const RETURN_FORCE = 0.02;
+        const DAMPING = 0.95;
+        const MOUSE_RADIUS = 150;
 
-  <div class="toast-container" id="toastContainer">
-      <!-- Toasts will be dynamically added here -->
-  </div>
-    <div class="form-wrapper">
-        <!-- <div style="display: flex; align-items: center; margin: 0 auto; border-radius: 3px; background-color: #ccc; width: 30%; height: 100%; "></div> -->
-        <form id="mainForm">
-            <h2  style="margin-top: 30px;">Отправка собщения через бота</h2>
-            <div class="mb-3" style="margin-top: 30px;">
-                <label for="botTokenInput" class="form-label">Токен бота</label>
-                <input class="form-control" id="botTokenInput" aria-describedby="tokenHelp" minlength="45" required value="7217584279:AAESDMyAbZkFO46o--u9VPBE2cNf-DB0ZV0">
-                <div id="tokenHelp" class="form-text">По умолчанию указан токен бота <a href="https://t.me/notificationsSerj_bot" target="_blank">@notificationsSerj_bot</a>, начните диалог с ботом, чтобы сработало</div>
-                <div id="tokenHelp" class="form-text">Создать своего бота и получить его токен можно через бота <a href="https://t.me/BotFather" target="_blank">@BotFather</a></div>
-            </div>
+        // Системные переменные
+        let particles = [];
+        let isExploded = false;
+        let returnProgress = 0;
+        let mouseX = 0, mouseY = 0;
 
-            <div class="mb-3" style="width: 100%;">
-                <label for="tgidInput" class="form-label">Код пользователя Telegram</label>
-                <input type="number" class="form-control" id="tgidInput" aria-describedby="tgidHelp" required>
-                <div id="tgidHelp" class="form-text">Получить свой TelegramID можно через бота <a href="https://t.me/getmyid_bot" target="_blank">@getmyid_bot</a></div>
-            </div>
+        // Инициализация Canvas
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles();
+        }
+        
+        // Плавная инициализация частиц
+        function initParticles() {
+            particles = [];
+            const heartPoints = [];
+            
+            // Генерация точек сердца с плотным заполнением
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                const t = i / PARTICLE_COUNT;
+                const point = getHeartPoint(t, HEART_SCALE);
+                
+                // Добавляем небольшую случайность для естественного вида
+                point.x += (Math.random() - 0.5) * 2;
+                point.y += (Math.random() - 0.5) * 2;
+                heartPoints.push(point);
+            }
+            
+            // Создание частиц с плавными цветовыми переходами
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                const heartPos = heartPoints[i];
+                const hue = 270 + Math.sin(i * 0.1) * 20; // Плавные колебания оттенка
+                const saturation = 80 + Math.cos(i * 0.05) * 15;
+                const lightness = 60 + Math.sin(i * 0.07) * 15;
+                
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: 0,
+                    vy: 0,
+                    size: PARTICLE_SIZE * (0.7 + Math.random() * 0.6),
+                    color: `hsl(${hue}, ${saturation}%, ${lightness}%)`,
+                    homeX: heartPos.x,
+                    homeY: heartPos.y,
+                    delay: Math.pow(Math.random(), 2) * 2000 // Больше частиц возвращаются раньше
+                });
+            }
+        }
 
-            <div class="mb-3" style="width: 100%;">
-                <label class="form-label">Сообщение</label>
-                <textarea id="textTextArea" class="form-control" id="textTextarea" rows="3" required minlength="10"></textarea>
-            </div>
+        // Параметрическое уравнение сердца
+        function getHeartPoint(t, scale) {
+            t = t * Math.PI * 2;
+            const x = 16 * Math.pow(Math.sin(t), 3);
+            const y = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+            return {
+                x: canvas.width/2 + x * scale,
+                y: canvas.height/2 + y * scale
+            };
+        }
 
-            <button id="submitBtn" type="button" class="btn btn-primary" style="display: block; width: 100%;" disabled>Отправить сообщение</button>
-        </form>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8" crossorigin="anonymous"></script>
-    <script src="scripts.js"></script> 
+        // Взрыв при клике с плавным эффектом
+        function explode(e) {
+            isExploded = true;
+            returnProgress = 0;
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            particles.forEach(p => {
+                // Направление от мыши
+                const dx = p.x - mouseX;
+                const dy = p.y - mouseY;
+                const distance = Math.sqrt(dx*dx + dy*dy);
+                
+                // Плавное изменение силы взрыва
+                const force = EXPLOSION_POWER * easeOutQuad(Math.min(1, distance/MOUSE_RADIUS));
+                
+                // Добавляем случайное отклонение для натуральности
+                p.vx = (dx/distance || 0) * force * (0.8 + Math.random()*0.4);
+                p.vy = (dy/distance || 0) * force * (0.8 + Math.random()*0.4);
+                
+                // Дополнительная случайная скорость
+                p.vx += (Math.random() - 0.5) * 2;
+                p.vy += (Math.random() - 0.5) * 2;
+            });
+            
+            // Автоматический возврат через 1.5 секунды
+            setTimeout(() => {
+                isExploded = false;
+                returnProgress = 0;
+            }, 1500);
+        }
+
+        // Функции плавности
+        function easeOutQuad(t) {
+            return t * (2 - t);
+        }
+        
+        function easeInOutCubic(t) {
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+
+        // Анимация с плавными переходами
+        function animate(timestamp) {
+            // Очистка с небольшим затемнением для эффекта свечения
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            if (!isExploded) {
+                returnProgress = Math.min(returnProgress + 0.005, 1);
+            }
+            
+            let allReturned = true;
+            
+            particles.forEach(p => {
+                if (isExploded) {
+                    // Плавное движение при взрыве
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    
+                    // Замедление с изменяющимся коэффициентом
+                    p.vx *= 0.96 + Math.random() * 0.03;
+                    p.vy *= 0.96 + Math.random() * 0.03;
+                } else {
+                    // Плавный возврат с индивидуальной задержкой
+                    const t = Math.max(0, (returnProgress * 2000 - p.delay) / 2000);
+                    
+                    if (t > 0) {
+                        const easeT = easeInOutCubic(t);
+                        const dx = p.homeX - p.x;
+                        const dy = p.homeY - p.y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        
+                        if (distance > 0.5) {
+                            allReturned = false;
+                            const force = RETURN_FORCE * distance * easeT;
+                            p.vx += (dx / distance) * force;
+                            p.vy += (dy / distance) * force;
+                        } else {
+                            // Точное позиционирование при приближении
+                            p.x = p.homeX;
+                            p.y = p.homeY;
+                            p.vx = p.vy = 0;
+                        }
+                    } else {
+                        allReturned = false;
+                    }
+                    
+                    // Плавное замедление
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vx *= DAMPING;
+                    p.vy *= DAMPING;
+                }
+                
+                // Отрисовка с плавным изменением размера
+                const sizeFactor = isExploded ? 1 : 0.8 + 0.2 * returnProgress;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * sizeFactor, 0, Math.PI*2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+            });
+            
+            // Если все вернулись - точная фиксация позиций
+            if (!isExploded && allReturned) {
+                particles.forEach(p => {
+                    p.x = p.homeX;
+                    p.y = p.homeY;
+                });
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        // Обработчики событий
+        window.addEventListener('click', explode);
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        // Запуск
+        resizeCanvas();
+        requestAnimationFrame(animate);
+    </script>
 </body>
 </html>
