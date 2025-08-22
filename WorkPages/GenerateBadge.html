@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор бейджей для GitHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            line-height: 1.6;
+            padding-bottom: 30px;
+        }
+        
+        .banner {
+            background-color: #ff0000;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            width: 100%;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .panel {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+        
+        h2 {
+            margin-bottom: 15px;
+            color: #444;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .color-input {
+            display: flex;
+            align-items: center;
+        }
+        
+        .color-input input[type="text"] {
+            flex: 1;
+        }
+        
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+        
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #45a049;
+        }
+        
+        .preview-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .preview-badge {
+            max-width: 100%;
+            display: inline-block;
+        }
+        
+        .code-container {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            position: relative;
+        }
+        
+        .code {
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #eee;
+            border: 1px solid #ddd;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .two-columns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .two-columns > div {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .instructions {
+            margin-top: 30px;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .two-columns {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="banner">НЕ ИЗМЕНЯТЬ</div>
+    
+    <div class="container">
+        <div class="panel">
+            <h1>Генератор бейджей для GitHub</h1>
+            
+            <div class="two-columns">
+                <div>
+                    <h2>Параметры бейджа</h2>
+                    
+                    <div class="form-group">
+                        <label for="width">Ширина (px):</label>
+                        <input type="number" id="width" value="800" min="100" max="2000">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="height">Высота (px):</label>
+                        <input type="number" id="height" value="50" min="20" max="500">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bgColor">Цвет фона (hex):</label>
+                        <div class="color-input">
+                            <input type="text" id="bgColor" value="ff0000">
+                            <div class="color-preview" id="bgColorPreview" style="background-color: #ff0000;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="textColor">Цвет текста (hex):</label>
+                        <div class="color-input">
+                            <input type="text" id="textColor" value="ffffff">
+                            <div class="color-preview" id="textColorPreview" style="background-color: #ffffff;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="text">Текст:</label>
+                        <input type="text" id="text" value="НЕ ИЗМЕНЯТЬ">
+                    </div>
+                    
+                    <button class="btn" id="generateBtn">Сгенерировать бейдж</button>
+                </div>
+                
+                <div>
+                    <h2>Предпросмотр</h2>
+                    <div class="preview-container">
+                        <img id="preview" src="https://dmitryyalchik.github.io/WorkPages/GenerateBadge/800x50/ff0000/ffffff?text=НЕ+ИЗМЕНЯТЬ" alt="Предпросмотр бейджа" class="preview-badge">
+                    </div>
+                    
+                    <h2>Код для вставки</h2>
+                    <div class="code-container">
+                        <button class="copy-btn" id="copyBtn">Копировать</button>
+                        <div class="code" id="codeOutput">&lt;img src="https://dmitryyalchik.github.io/WorkPages/GenerateBadge/800x50/ff0000/ffffff?text=НЕ+ИЗМЕНЯТЬ" alt="НЕ ИЗМЕНЯТЬ"&gt;</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel instructions">
+            <h2>Как использовать</h2>
+            <p>Сгенерируйте бейдж с нужными параметрами и скопируйте код для вставки. Вставьте этот код в ваш README.md файл на GitHub:</p>
+            <ol>
+                <li>Настройте параметры бейджа: размер, цвета и текст</li>
+                <li>Нажмите "Сгенерировать бейдж"</li>
+                <li>Скопируйте код из поля "Код для вставки"</li>
+                <li>Вставьте код в ваш Markdown-файл на GitHub</li>
+            </ol>
+            <p>Пример использования в README.md:</p>
+            <div class="code-container">
+                <div class="code">&lt;p align="center"&gt;
+  &lt;img src="https://dmitryyalchik.github.io/WorkPages/GenerateBadge/800x50/ff0000/ffffff?text=НЕ+ИЗМЕНЯТЬ" alt="НЕ ИЗМЕНЯТЬ"&gt;
+&lt;/p&gt;</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Элементы DOM
+            const widthInput = document.getElementById('width');
+            const heightInput = document.getElementById('height');
+            const bgColorInput = document.getElementById('bgColor');
+            const textColorInput = document.getElementById('textColor');
+            const textInput = document.getElementById('text');
+            const generateBtn = document.getElementById('generateBtn');
+            const preview = document.getElementById('preview');
+            const codeOutput = document.getElementById('codeOutput');
+            const copyBtn = document.getElementById('copyBtn');
+            const bgColorPreview = document.getElementById('bgColorPreview');
+            const textColorPreview = document.getElementById('textColorPreview');
+            
+            // Функция обновления предпросмотра цвета
+            function updateColorPreview(input, previewElement) {
+                const color = input.value.startsWith('#') ? input.value : '#' + input.value;
+                previewElement.style.backgroundColor = color;
+            }
+            
+            // Обработчики событий для предпросмотра цвета
+            bgColorInput.addEventListener('input', () => updateColorPreview(bgColorInput, bgColorPreview));
+            textColorInput.addEventListener('input', () => updateColorPreview(textColorInput, textColorPreview));
+            
+            // Функция генерации URL бейджа
+            function generateBadgeUrl() {
+                const width = widthInput.value;
+                const height = heightInput.value;
+                const bgColor = bgColorInput.value.replace('#', '');
+                const textColor = textColorInput.value.replace('#', '');
+                const text = encodeURIComponent(textInput.value);
+                
+                return `https://dmitryyalchik.github.io/WorkPages/GenerateBadge/${width}x${height}/${bgColor}/${textColor}?text=${text}`;
+            }
+            
+            // Функция обновления предпросмотра и кода
+            function updatePreview() {
+                const badgeUrl = generateBadgeUrl();
+                preview.src = badgeUrl;
+                codeOutput.textContent = `<img src="${badgeUrl}" alt="${textInput.value}">`;
+            }
+            
+            // Обработчик клика по кнопке генерации
+            generateBtn.addEventListener('click', updatePreview);
+            
+            // Обработчик клика по кнопке копирования
+            copyBtn.addEventListener('click', function() {
+                const textArea = document.createElement('textarea');
+                textArea.value = codeOutput.textContent;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                // Визуальное подтверждение копирования
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Скопировано!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            });
+            
+            // Инициализация предпросмотра цветов
+            updateColorPreview(bgColorInput, bgColorPreview);
+            updateColorPreview(textColorInput, textColorPreview);
+        });
+    </script>
+</body>
+</html>
